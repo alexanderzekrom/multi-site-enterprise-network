@@ -1,0 +1,123 @@
+! ============================================================================
+! Multi-Site Enterprise Network - Branch 1 Switch Configuration
+! ============================================================================
+! Version: 1.0
+! Platform: Cisco IOS Switch
+! Features: Single VLAN, Port Security, SSH Management
+! ============================================================================
+
+! Basic Configuration
+hostname BRANCH1-SW1
+enable secret 12345
+service password-encryption
+no ip domain-lookup
+
+! Security Configuration
+username admin privilege 15 secret 1234
+
+line console 0
+ password 1234
+ login
+
+line vty 0 4
+ password 1234
+ login
+ transport input ssh
+
+! SSH Configuration
+ip domain-name enterprise.local
+crypto key generate rsa modulus 1024
+
+! ============================================================================
+! VLAN CONFIGURATION
+! ============================================================================
+
+! Default VLAN 1 for all branch users
+! (Simplified design for branch office)
+
+! Management VLAN (Optional)
+vlan 99
+ name MANAGEMENT
+ exit
+
+! ============================================================================
+! INTERFACE CONFIGURATION
+! ============================================================================
+
+! Uplink to Branch Router
+interface GigabitEthernet0/1
+ description Uplink to Branch 1 Router (R3)
+ switchport mode access
+ switchport access vlan 1
+ spanning-tree portfast
+ exit
+
+! ============================================================================
+! ACCESS PORTS - BRANCH USERS (VLAN 1)
+! ============================================================================
+
+interface range FastEthernet0/2 - 24
+ description Branch 1 User Access Ports
+ switchport mode access
+ switchport access vlan 1
+ switchport port-security
+ switchport port-security maximum 3
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ exit
+
+! ============================================================================
+! MANAGEMENT INTERFACE
+! ============================================================================
+
+interface Vlan1
+ ip address 192.168.2.2 255.255.255.0
+ no shutdown
+ exit
+
+! Default Gateway
+ip default-gateway 192.168.2.1
+
+! ============================================================================
+! SPANNING TREE CONFIGURATION
+! ============================================================================
+
+! Enable Rapid PVST+
+spanning-tree mode rapid-pvst
+
+! Configure as non-root bridge
+spanning-tree vlan 1 priority 28672
+
+! ============================================================================
+! SECURITY CONFIGURATION
+! ============================================================================
+
+! Enable BPDU Guard on edge ports
+interface range FastEthernet0/2 - 24
+ spanning-tree bpduguard enable
+ exit
+
+! Enable Storm Control
+interface range FastEthernet0/2 - 24
+ storm-control broadcast level 10.00
+ storm-control multicast level 20.00
+ exit
+
+! ============================================================================
+! BANNER AND MESSAGES
+! ============================================================================
+
+banner motd ^C
+*****************************************************************
+*        MULTI-SITE ENTERPRISE NETWORK - BRANCH 1 SWITCH       *
+*        Unauthorized Access Prohibited                        *
+*****************************************************************
+^C
+
+! ============================================================================
+! END OF CONFIGURATION
+! ============================================================================
+
+! Save Configuration
+write memory

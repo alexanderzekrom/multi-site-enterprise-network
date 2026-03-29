@@ -1,0 +1,97 @@
+! ============================================================================
+! Multi-Site Enterprise Network - Branch 2 Router (R4) Configuration
+! ============================================================================
+! Version: 1.0
+! Platform: Cisco IOS Router
+! Features: OSPF Area 2, Local DHCP
+! ============================================================================
+
+! Basic Configuration
+hostname R4-Branch2
+enable secret 12345
+service password-encryption
+no ip domain-lookup
+
+! Security Configuration
+username admin privilege 15 secret 1234
+
+line console 0
+ password 1234
+ login
+
+line vty 0 4
+ password 1234
+ login
+ transport input ssh
+
+! SSH Configuration
+ip domain-name enterprise.local
+crypto key generate rsa modulus 1024
+
+! ============================================================================
+! INTERFACE CONFIGURATION
+! ============================================================================
+
+! WAN Link to HQ
+interface GigabitEthernet0/0
+ description Link to HQ (R1)
+ ip address 10.0.2.2 255.255.255.252
+ no shutdown
+
+! Local LAN Interface
+interface GigabitEthernet0/1
+ description Branch 2 Local Network
+ ip address 10.2.10.1 255.255.255.0
+ no shutdown
+
+! ============================================================================
+! DHCP CONFIGURATION
+! ============================================================================
+
+! DHCP Exclusions
+ip dhcp excluded-address 10.2.10.1 10.2.10.10
+
+! Branch 2 DHCP Pool
+ip dhcp pool BRANCH2
+ network 10.2.10.0 255.255.255.0
+ default-router 10.2.10.1
+ dns-server 8.8.8.8
+ lease 7
+
+! ============================================================================
+! OSPF ROUTING CONFIGURATION
+! ============================================================================
+
+router ospf 1
+ router-id 4.4.4.4
+ network 10.2.10.0 0.0.0.255 area 2
+ network 10.0.2.0 0.0.0.3 area 0
+
+! ============================================================================
+! ROUTING AND SERVICES
+! ============================================================================
+
+! Default Route to HQ
+ip route 0.0.0.0 0.0.0.0 10.0.2.1
+
+! Enable HTTP/HTTPS Management (Optional)
+ip http server
+ip http secure-server
+
+! ============================================================================
+! BANNER AND MESSAGES
+! ============================================================================
+
+banner motd ^C
+*****************************************************************
+*        MULTI-SITE ENTERPRISE NETWORK - BRANCH 2 ROUTER       *
+*        Unauthorized Access Prohibited                        *
+*****************************************************************
+^C
+
+! ============================================================================
+! END OF CONFIGURATION
+! ============================================================================
+
+! Save Configuration
+write memory

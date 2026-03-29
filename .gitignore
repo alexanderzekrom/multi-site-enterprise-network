@@ -1,0 +1,50 @@
+# Network Configuration Files
+*.cfg
+*.conf
+running-config*
+startup-config*
+
+# Packet Tracer Files
+*.pkt
+*.pka
+*.pkz
+
+# GNS3/EVE-NG Files
+*.gns3
+*.unl
+*.lab
+
+# Log Files
+*.log
+logs/
+debug*
+
+# Backup Files
+*.bak
+*.backup
+*.old
+
+# Temporary Files
+*.tmp
+*.temp
+~*
+
+# OS Specific
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE Files
+.vscode/
+.idea/
+*.sublime-*
+
+# Documentation Build
+docs/_build/
+site/
+
+# Private Information
+secrets.txt
+passwords.txt
+private-keys/

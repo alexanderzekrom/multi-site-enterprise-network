@@ -1,0 +1,166 @@
+! ============================================================================
+! Multi-Site Enterprise Network - HQ Switch Configuration
+! ============================================================================
+! Version: 1.0
+! Platform: Cisco IOS Switch
+! Features: VLANs 10/20/30, Port Security, SSH Management
+! ============================================================================
+
+! Basic Configuration
+hostname HQ-SW1
+enable secret 12345
+service password-encryption
+no ip domain-lookup
+
+! Security Configuration
+username admin privilege 15 secret 1234
+
+line console 0
+ password 1234
+ login
+
+line vty 0 4
+ password 1234
+ login
+ transport input ssh
+
+! SSH Configuration
+ip domain-name enterprise.local
+crypto key generate rsa modulus 1024
+
+! ============================================================================
+! VLAN CONFIGURATION
+! ============================================================================
+
+! Create VLANs
+vlan 10
+ name IT_DEPARTMENT
+ exit
+
+vlan 20
+ name SALES_DEPARTMENT
+ exit
+
+vlan 30
+ name ADMIN_DEPARTMENT
+ exit
+
+! Management VLAN (Optional)
+vlan 99
+ name MANAGEMENT
+ exit
+
+! ============================================================================
+! INTERFACE CONFIGURATION
+! ============================================================================
+
+! Trunk to Router
+interface GigabitEthernet0/1
+ description Trunk to HQ Router (R1)
+ switchport mode trunk
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,30,99
+ spanning-tree portfast trunk
+ exit
+
+! ============================================================================
+! ACCESS PORTS - IT DEPARTMENT (VLAN 10)
+! ============================================================================
+
+interface range FastEthernet0/1 - 8
+ description IT Department Access Ports
+ switchport mode access
+ switchport access vlan 10
+ switchport port-security
+ switchport port-security maximum 3
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ exit
+
+! ============================================================================
+! ACCESS PORTS - SALES DEPARTMENT (VLAN 20)
+! ============================================================================
+
+interface range FastEthernet0/9 - 16
+ description Sales Department Access Ports
+ switchport mode access
+ switchport access vlan 20
+ switchport port-security
+ switchport port-security maximum 3
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ exit
+
+! ============================================================================
+! ACCESS PORTS - ADMIN DEPARTMENT (VLAN 30)
+! ============================================================================
+
+interface range FastEthernet0/17 - 24
+ description Admin Department Access Ports
+ switchport mode access
+ switchport access vlan 30
+ switchport port-security
+ switchport port-security maximum 3
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+ spanning-tree portfast
+ exit
+
+! ============================================================================
+! MANAGEMENT INTERFACE
+! ============================================================================
+
+interface Vlan1
+ ip address 192.168.1.2 255.255.255.0
+ no shutdown
+ exit
+
+! Default Gateway
+ip default-gateway 192.168.1.1
+
+! ============================================================================
+! SPANNING TREE CONFIGURATION
+! ============================================================================
+
+! Enable Rapid PVST+
+spanning-tree mode rapid-pvst
+
+! Configure Root Bridge (if this is the main switch)
+spanning-tree vlan 10 priority 24576
+spanning-tree vlan 20 priority 24576
+spanning-tree vlan 30 priority 24576
+
+! ============================================================================
+! SECURITY CONFIGURATION
+! ============================================================================
+
+! Enable BPDU Guard on edge ports
+interface range FastEthernet0/1 - 24
+ spanning-tree bpduguard enable
+ exit
+
+! Enable Storm Control
+interface range FastEthernet0/1 - 24
+ storm-control broadcast level 10.00
+ storm-control multicast level 20.00
+ exit
+
+! ============================================================================
+! BANNER AND MESSAGES
+! ============================================================================
+
+banner motd ^C
+*****************************************************************
+*        MULTI-SITE ENTERPRISE NETWORK - HQ SWITCH              *
+*        Unauthorized Access Prohibited                        *
+*****************************************************************
+^C
+
+! ============================================================================
+! END OF CONFIGURATION
+! ============================================================================
+
+! Save Configuration
+write memory
